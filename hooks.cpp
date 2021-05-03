@@ -12,11 +12,21 @@ bool __fastcall CreateMove( void* ecx, void*, float frametime, CUserCmd* cmd )
 	me = entitylist->GetBaseEntity( engine->GetLocalPlayer( ) );
 	if( !me ) return ret;
 
-	if( chk( cmd->buttons, IN_JUMP ) && !chk( me->GetFlags( ), FL_ONGROUND ) )
+	// code from gir489's black mesa darkstorm
+	// required to fix the long jump module
+	static bool jumpreleased = true;
+	if( chk( cmd->buttons, IN_JUMP ) )
 	{
-		if( me->GetWaterLevel( ) == 0 && me->GetMoveType( ) != MOVETYPE_LADDER )
-			del( cmd->buttons, IN_JUMP );
+		if( jumpreleased )
+			jumpreleased = false;
+		else
+		{
+			if( !chk( me->GetFlags( ), FL_ONGROUND ) && me->GetWaterLevel( ) == 0 && me->GetMoveType( ) != MOVETYPE_LADDER )
+				del( cmd->buttons, IN_JUMP );
+		}
 	}
+	else if( !jumpreleased )
+		jumpreleased = true;
 
 	return ret;
 }
